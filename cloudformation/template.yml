@@ -7,3 +7,8 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       BucketName: academia-backend
+
+  AcademiaS3Bucket2:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: academia-backend-2
