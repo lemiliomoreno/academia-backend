@@ -10,7 +10,7 @@ env:
   AWS_DEFAULT_REGION: us-west-2
 
 jobs:
-  CI:
+  CD:
     runs-on: ubuntu-latest
 
     steps:
