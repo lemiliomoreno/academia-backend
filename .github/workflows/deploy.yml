@@ -39,9 +39,9 @@ jobs:
       - name: Upload API to S3 Bucket
         run: |
           cd lambda/
-          aws s3api put-object --bucket academia-backend-lambda --key 0.0.1.zip --body bundle.zip
+          aws s3api put-object --bucket academia-backend-lambda --key 0.0.2.zip --body bundle.zip
 
       - name: Deploy API
         run: |
           cd lambda/
-          aws cloudformation deploy --stack-name academia-backend-api --template api.yml --parameter-overrides Stage=dev VersionKey=0.0.1.zip --capabilities CAPABILITY_IAM
+          aws cloudformation deploy --stack-name academia-backend-api --template api.yml --parameter-overrides Stage=dev VersionKey=0.0.2.zip --capabilities CAPABILITY_IAM
