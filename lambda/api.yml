@@ -1,0 +1,87 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: CloudFormation Template for Academia Backend
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+  VersionKey:
+    Type: String
+    Default: '0.0.1.zip'
+
+Resources:
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: AcademiaBackendLambdaRole
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:BatchGetItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/academia-backend'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action: logs:CreateLogGroup
+                Resource: "*"
+
+  API:
+    Type: AWS::Serverless::Function
+    Properties:
+      Events:
+        ApiEvent:
+          Properties:
+            RestApiId: !Ref APIGateway
+            Path: /{proxy+}
+            Method: ANY
+          Type: Api
+      FunctionName: academia-backend-lambda
+      CodeUri:
+        Bucket: academia-backend-lambda
+        Key: !Ref VersionKey
+      Handler: app.handler
+      Runtime: python3.8
+      Timeout: 30
+      MemorySize: 512
+      Description: Serverless Function
+      # other options, see ->
+      # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html#sam-specification-template-anatomy-globals-supported-resources-and-properties
+      Role: !GetAtt LambdaRole.Arn
+
+  APIGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+      OpenApiVersion: '3.0.0'
+
+Outputs:
+  Endpoint:
+    Description: "API Endpoint"
+    Value: !Sub "https://${APIGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
