@@ -4,13 +4,13 @@ name: Deploy
 on:
   push:
     branches:
-      - main
+      - feat/lambda_deploy
 
 env:
   AWS_DEFAULT_REGION: us-west-2
 
 jobs:
-  CI:
+  CD:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,7 +24,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
-      - name: Deploy CloudFormation stack
+      - name: Deploy S3 bucket
         run: |
-          cd cloudformation/
-          aws cloudformation deploy --stack-name academia-backend-s3-bucket --template template.yml
+          cd lambda/
+          aws cloudformation deploy --stack-name academia-backend-bucket --template bucket.yml
+
+      - name: Install API requirements
+        run: |
+          cd lambda/
+          pip install -r requirements.txt -t ./bundle/
+          cp -r app/* bundle/
+          cd bundle && zip -rq ../bundle.zip *
+
+      - name: Upload API to S3 Bucket
+        run: |
+          cd lambda/
+          aws s3api put-object --bucket academia-backend-lambda --key 0.0.2.zip --body bundle.zip
+
+      - name: Deploy API
+        run: |
+          cd lambda/
+          aws cloudformation deploy --stack-name academia-backend-api --template api.yml --parameter-overrides Stage=dev VersionKey=0.0.2.zip --capabilities CAPABILITY_IAM

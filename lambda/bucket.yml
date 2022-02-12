@@ -1,0 +1,9 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation Template for Academia Backend Bucket
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: academia-backend-lambda
