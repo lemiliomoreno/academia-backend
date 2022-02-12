@@ -33,9 +33,10 @@ jobs:
         run: |
           cd lambda/
           pip install -r requirements.txt -t ./bundle/
-          cp -r * bundle/
+          cp -r app/* bundle/
           cd bundle && zip -rq ../bundle.zip *
 
       - name: Upload API to S3 Bucket
         run: |
+          cd lambda/
           aws s3api put-object --bucket academia-backend-lambda --key 0.0.1.zip --body bundle.zip
